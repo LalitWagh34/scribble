@@ -18,3 +18,11 @@ export const signup = (name: string, email: string, password: string) =>
 export const signin = (email: string, password: string) =>
   api.post("/auth/signin", { email, password });
 
+export const getNotes = () => api.get("/notes");
+export const getNote = (id: string) => api.get(`/notes/${id}`);
+export const createNote = (title: string, content: string) =>
+  api.post("/notes", { title, content });
+export const updateNote = (id: string, title: string, content: string) =>
+  api.put(`/notes/${id}`, { title, content });
+export const deleteNote = (id: string) => api.delete(`/notes/${id}`);
+
