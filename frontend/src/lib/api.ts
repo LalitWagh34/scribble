@@ -25,4 +25,6 @@ export const createNote = (title: string, content: string) =>
 export const updateNote = (id: string, title: string, content: string) =>
   api.put(`/notes/${id}`, { title, content });
 export const deleteNote = (id: string) => api.delete(`/notes/${id}`);
+export const getProfile = ()=>api.get(`user/profile`)
+export const updateProfile = (name: string) => api.put("/user/profile", { name });
 
