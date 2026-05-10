@@ -34,6 +34,17 @@ export default function Notes() {
     return () => clearTimeout(timer);
   }, [title, content]);
 
+  useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === "n") {
+      e.preventDefault();
+      handleCreate();
+    }
+  };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [notes]);
+
   const fetchProfile = async () => {
     const res = await getProfile();
     setUser(res.data.user);
@@ -88,73 +99,88 @@ export default function Notes() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen" style={{ background: "#fff" }}>
 
       {/* Sidebar */}
-      <div className="w-64 bg-[#1a1a2e] flex flex-col">
+      <div className="flex flex-col" style={{ width: "240px", background: "#f7f7f5", borderRight: "1px solid #e8e8e6" }}>
 
-        {/* Profile Header */}
+        {/* Workspace Header */}
         <div className="relative">
           <button
             onClick={() => setShowProfile(!showProfile)}
-            className="w-full flex items-center gap-2 p-4 hover:bg-white/5 transition-colors border-b border-white/10"
+            className="w-full flex items-center gap-2 px-3 py-3 hover:bg-black/5 transition-colors"
           >
-            <div className="w-7 h-7 rounded-full bg-[#7F77DD] flex items-center justify-center text-white text-xs font-medium">
+            <div className="w-6 h-6 rounded-md flex items-center justify-center text-white text-xs font-bold" style={{ background: "#7F77DD" }}>
               {user?.name?.charAt(0).toUpperCase()}
             </div>
-            <span className="text-white text-sm font-medium flex-1 text-left">
+            <span className="text-sm font-medium flex-1 text-left truncate" style={{ color: "#37352f" }}>
               {user?.name}'s Space
             </span>
-            <span className="text-white/40 text-xs">▼</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "#9b9b9b" }}>
+              <path d="M5 8l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
 
           {/* Dropdown */}
           {showProfile && (
-            <div className="absolute top-full left-0 w-full bg-[#2a2a3e] border border-white/10 rounded-lg shadow-xl z-50 p-2">
-              <div className="px-3 py-2 border-b border-white/10 mb-1">
-                <p className="text-white text-sm font-medium">{user?.name}</p>
-                <p className="text-white/40 text-xs">{user?.email}</p>
+            <div className="absolute top-full left-2 right-2 rounded-lg shadow-lg z-50 overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e8e6" }}>
+              <div className="px-3 py-3" style={{ borderBottom: "1px solid #e8e8e6" }}>
+                <p className="text-sm font-medium" style={{ color: "#37352f" }}>{user?.name}</p>
+                <p className="text-xs" style={{ color: "#9b9b9b" }}>{user?.email}</p>
               </div>
               <button
                 onClick={() => { setShowSettings(true); setNewName(user?.name || ""); setShowProfile(false); }}
-                className="w-full text-left px-3 py-2 text-white/70 hover:text-white hover:bg-white/5 rounded-md text-sm transition-colors"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-black/5 transition-colors"
+                style={{ color: "#37352f" }}
               >
-                ⚙️ Settings
+                Settings
               </button>
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-3 py-2 text-white/70 hover:text-white hover:bg-white/5 rounded-md text-sm transition-colors"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-black/5 transition-colors"
+                style={{ color: "#37352f" }}
               >
-                🚪 Log out
+                Log out
               </button>
             </div>
           )}
         </div>
 
-        {/* New Note Button */}
-        <div className="p-3">
+        {/* Search */}
+        <div className="px-2 py-1">
+          <div className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-black/5 cursor-text transition-colors">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: "#9b9b9b", flexShrink: 0 }}>
+              <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M10.5 10.5L13 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <input
+              className="text-sm bg-transparent outline-none w-full"
+              style={{ color: "#37352f" }}
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Private Section */}
+        <div className="px-3 pt-4 pb-1 flex items-center justify-between">
+          <span className="text-xs font-medium" style={{ color: "#9b9b9b" }}>Private</span>
           <button
             onClick={handleCreate}
-            className="w-full flex items-center gap-2 bg-[#7F77DD] hover:bg-[#6c64c9] text-white rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+            className="hover:bg-black/5 rounded p-0.5 transition-colors"
+            title="New note"
           >
-            <span className="text-lg leading-none">+</span> New Note
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "#9b9b9b" }}>
+              <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
           </button>
         </div>
 
-        {/* Search */}
-        <div className="px-3 pb-2">
-          <input
-            className="w-full bg-white/10 text-white text-sm rounded-lg px-3 py-2 outline-none placeholder-white/30"
-            placeholder="Search notes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
         {/* Notes List */}
-        <div className="flex-1 overflow-y-auto px-2 pb-2">
+        <div className="flex-1 overflow-y-auto px-1">
           {notes.length === 0 && (
-            <p className="text-white/30 text-xs text-center mt-8">No notes yet</p>
+            <p className="text-xs px-3 py-2" style={{ color: "#9b9b9b" }}>No pages inside</p>
           )}
           {notes
             .filter(note => note.title.toLowerCase().includes(search.toLowerCase()))
@@ -162,109 +188,142 @@ export default function Notes() {
               <div
                 key={note.id}
                 onClick={() => handleSelect(note)}
-                className={`group flex justify-between items-start p-3 rounded-lg cursor-pointer mb-1 transition-colors ${
-                  selectedNote?.id === note.id ? "bg-white/15" : "hover:bg-white/8"
-                }`}
+                className="group flex items-center gap-1 px-2 py-1 rounded-md cursor-pointer transition-colors"
+                style={{
+                  background: selectedNote?.id === note.id ? "rgba(0,0,0,0.06)" : "transparent",
+                  color: "#37352f"
+                }}
+                onMouseEnter={e => { if (selectedNote?.id !== note.id) e.currentTarget.style.background = "rgba(0,0,0,0.04)" }}
+                onMouseLeave={e => { if (selectedNote?.id !== note.id) e.currentTarget.style.background = "transparent" }}
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium truncate">
-                    {note.title || "Untitled"}
-                  </p>
-                  <p className="text-white/40 text-xs mt-0.5">{formatDate(note.updatedAt)}</p>
-                </div>
+                <span className="text-base" style={{ flexShrink: 0 }}>📄</span>
+                <span className="text-sm flex-1 truncate">{note.title || "Untitled"}</span>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDelete(note.id); }}
-                  className="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 text-xs ml-2 transition-all"
-                >✕</button>
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-black/10"
+                  style={{ color: "#9b9b9b" }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                    <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </button>
               </div>
             ))}
         </div>
 
-        {/* Sign out */}
-        <div className="p-3 border-t border-white/10">
+        {/* Bottom */}
+        {/* Bottom */}
+        <div className="px-1 py-2" style={{ borderTop: "1px solid #e8e8e6" }}>
           <button
-            onClick={handleLogout}
-            className="w-full text-white/50 hover:text-white text-sm py-2 transition-colors"
+            onClick={handleCreate}
+            className="w-full flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-black/5 transition-colors"
           >
-            Sign out
+            <div className="flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ color: "#9b9b9b" }}/>
+              </svg>
+              <span className="text-sm" style={{ color: "#37352f" }}>New page</span>
+            </div>
+            <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "#e8e8e6", color: "#9b9b9b" }}>
+              Ctrl+N
+            </span>
           </button>
         </div>
       </div>
 
       {/* Editor */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {selectedNote ? (
           <>
-            {/* Toolbar */}
-            <div className="flex items-center gap-1.5 px-8 py-3 border-b bg-white">
-              {saved ? (
-                <>
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                  <span className="text-xs text-gray-400">All changes saved</span>
-                </>
-              ) : (
-                <>
-                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
-                  <span className="text-xs text-gray-400">Saving...</span>
-                </>
-              )}
+            {/* Top bar */}
+            <div className="flex items-center justify-between px-6 py-2" style={{ borderBottom: "1px solid #e8e8e6" }}>
+              <div className="flex items-center gap-1.5">
+                {saved ? (
+                  <>
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                    <span className="text-xs" style={{ color: "#9b9b9b" }}>Saved</span>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                    <span className="text-xs" style={{ color: "#9b9b9b" }}>Saving...</span>
+                  </>
+                )}
+              </div>
+              <span className="text-xs" style={{ color: "#9b9b9b" }}>
+                {formatDate(selectedNote.updatedAt)}
+              </span>
             </div>
 
             {/* Note Content */}
-            <div className="flex-1 flex flex-col px-16 py-10 overflow-y-auto bg-white">
-              <input
-                className="text-3xl font-medium outline-none text-gray-900 mb-6 border-none"
-                value={title}
-                onChange={(e) => { setTitle(e.target.value); setSaved(false); }}
-                placeholder="Untitled"
-              />
-              <RichEditor
-                content={content}
-                onChange={(val: string) => { setContent(val); setSaved(false); }}
-              />
+            <div className="flex-1 overflow-y-auto">
+              <div className="max-w-3xl mx-auto px-16 py-16">
+                <input
+                  className="w-full text-4xl font-bold outline-none mb-4"
+                  style={{ color: "#37352f", border: "none", background: "transparent" }}
+                  value={title}
+                  onChange={(e) => { setTitle(e.target.value); setSaved(false); }}
+                  placeholder="Untitled"
+                />
+                <RichEditor
+                  content={content}
+                  onChange={(val: string) => { setContent(val); setSaved(false); }}
+                />
+              </div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center bg-white text-center">
-            <div className="text-5xl mb-4">✦</div>
-            <p className="text-gray-400 text-sm">Select a note or create a new one</p>
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <p className="text-5xl mb-4">✦</p>
+            <p className="text-sm" style={{ color: "#9b9b9b" }}>Select a page or create a new one</p>
+            <button
+              onClick={handleCreate}
+              className="mt-4 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              style={{ background: "#f7f7f5", color: "#37352f", border: "1px solid #e8e8e6" }}
+            >
+              + New page
+            </button>
           </div>
         )}
       </div>
 
       {/* Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-medium mb-1">Profile Settings</h2>
-            <p className="text-sm text-gray-400 mb-6">Update your profile information</p>
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl" style={{ border: "1px solid #e8e8e6" }}>
+            <h2 className="text-lg font-medium mb-1" style={{ color: "#37352f" }}>Profile Settings</h2>
+            <p className="text-sm mb-6" style={{ color: "#9b9b9b" }}>Update your profile information</p>
             <div className="mb-4">
-              <label className="text-xs text-gray-500 mb-1 block">Name</label>
+              <label className="text-xs mb-1 block" style={{ color: "#9b9b9b" }}>Name</label>
               <input
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-purple-400"
+                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                style={{ border: "1px solid #e8e8e6", color: "#37352f" }}
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
               />
             </div>
             <div className="mb-6">
-              <label className="text-xs text-gray-500 mb-1 block">Email</label>
+              <label className="text-xs mb-1 block" style={{ color: "#9b9b9b" }}>Email</label>
               <input
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none bg-gray-50 text-gray-400"
+                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                style={{ border: "1px solid #e8e8e6", color: "#9b9b9b", background: "#f7f7f5" }}
                 value={user?.email}
                 disabled
               />
-              <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+              <p className="text-xs mt-1" style={{ color: "#9b9b9b" }}>Email cannot be changed</p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowSettings(false)}
-                className="flex-1 border border-gray-200 rounded-lg py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex-1 rounded-lg py-2 text-sm transition-colors"
+                style={{ border: "1px solid #e8e8e6", color: "#37352f" }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateProfile}
-                className="flex-1 bg-[#7F77DD] text-white rounded-lg py-2 text-sm font-medium hover:bg-[#6c64c9] transition-colors"
+                className="flex-1 rounded-lg py-2 text-sm font-medium text-white transition-colors"
+                style={{ background: "#7F77DD" }}
               >
                 Save changes
               </button>
