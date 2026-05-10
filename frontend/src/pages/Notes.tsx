@@ -16,9 +16,21 @@ export default function Notes() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [saved, setSaved] = useState(true);
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => { fetchNotes(); }, []);
+
+  // Autosave after 1 second of no typing
+  useEffect(() => {
+    if (!selectedNote || saved) return;
+    
+    const timer = setTimeout(() => {
+      handleSave();
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [title, content]);
 
   const fetchNotes = async () => {
     const res = await getNotes();
@@ -81,33 +93,46 @@ export default function Notes() {
           </button>
         </div>
 
+        {/* Search */}
+        <div className="px-3 pb-2">
+          <input
+            className="w-full bg-white/10 text-white text-sm rounded-lg px-3 py-2 outline-none placeholder-white/30"
+            placeholder="Search notes..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
         {/* Notes List */}
         <div className="flex-1 overflow-y-auto px-2 pb-2">
           {notes.length === 0 && (
             <p className="text-white/30 text-xs text-center mt-8">No notes yet</p>
           )}
-          {notes.map((note) => (
-            <div
-              key={note.id}
-              onClick={() => handleSelect(note)}
-              className={`group flex justify-between items-start p-3 rounded-lg cursor-pointer mb-1 transition-colors ${
-                selectedNote?.id === note.id
-                  ? "bg-white/15"
-                  : "hover:bg-white/8"
-              }`}
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-medium truncate">
-                  {note.title || "Untitled"}
-                </p>
-                <p className="text-white/40 text-xs mt-0.5">{formatDate(note.updatedAt)}</p>
-              </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); handleDelete(note.id); }}
-                className="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 text-xs ml-2 transition-all"
-              >✕</button>
+          
+        {notes
+        .filter(note => note.title.toLowerCase().includes(search.toLowerCase()))
+        .map((note) => (
+          <div
+            key={note.id}
+            onClick={() => handleSelect(note)}
+            className={`group flex justify-between items-start p-3 rounded-lg cursor-pointer mb-1 transition-colors ${
+              selectedNote?.id === note.id
+                ? "bg-white/15"
+                : "hover:bg-white/8"
+            }`}
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm font-medium truncate">
+                {note.title || "Untitled"}
+              </p>
+              <p className="text-white/40 text-xs mt-0.5">{formatDate(note.updatedAt)}</p>
             </div>
-          ))}
+            <button
+              onClick={(e) => { e.stopPropagation(); handleDelete(note.id); }}
+              className="opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 text-xs ml-2 transition-all"
+            >✕</button>
+          </div>
+        ))}
         </div>
 
         {/* Logout */}
@@ -126,18 +151,19 @@ export default function Notes() {
         {selectedNote ? (
           <>
             {/* Toolbar */}
-            <div className="flex items-center justify-between px-8 py-3 border-b bg-white">
-              <span className="text-xs text-gray-400">
-                {saved ? "All changes saved" : "Unsaved changes"}
-              </span>
-              <button
-                onClick={handleSave}
-                className="bg-[#7F77DD] hover:bg-[#6c64c9] text-white text-sm px-4 py-1.5 rounded-lg transition-colors"
-              >
-                Save
-              </button>
-            </div>
-
+          <div className="flex items-center gap-1.5">
+            {saved ? (
+              <>
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                <span className="text-xs text-gray-400">All changes saved</span>
+              </>
+            ) : (
+              <>
+                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                <span className="text-xs text-gray-400">Saving...</span>
+              </>
+            )}
+          </div>
             {/* Note Content */}
             <div className="flex-1 flex flex-col px-16 py-10 overflow-y-auto bg-white">
               <input
